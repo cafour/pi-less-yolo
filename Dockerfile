@@ -39,6 +39,22 @@ ENV UV_PYTHON_INSTALL_DIR=/usr/local/share/uv/python
 RUN uv python install 3.14.4 \
     && ln -s "$(uv python find 3.14.4)" /usr/local/bin/python3
 
+# Install .NET SDKs for currently supported major releases.
+# Supported as of 2026-05: .NET 8 (LTS), 9 (STS), and 10 (LTS).
+RUN <<'EOF'
+set -e
+curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+chmod +x /tmp/dotnet-install.sh
+for channel in 8.0 9.0 10.0; do
+    /tmp/dotnet-install.sh --channel "${channel}" --quality ga --install-dir /usr/local/share/dotnet --no-path
+done
+ln -s /usr/local/share/dotnet/dotnet /usr/local/bin/dotnet
+rm /tmp/dotnet-install.sh
+dotnet --list-sdks
+EOF
+
+ENV DOTNET_ROOT=/usr/local/share/dotnet
+
 # Install pi globally
 RUN npm install -g "@earendil-works/pi-coding-agent@0.74.0"
 
